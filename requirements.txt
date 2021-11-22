@@ -1,0 +1,16 @@
+# Create env:
+# python3 -m venv venv
+# source venv/bin/activate
+# python3 -m pip install -r requirements.txt
+
+pip
+gym
+pyglet
+onnx
+onnx-tf
+torch
+stable-baselines3
+stable-baselines3[extra]
+tensorflow
+--extra-index-url https://google-coral.github.io/py-repo/ pycoral~=2.0
+
