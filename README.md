@@ -1,4 +1,4 @@
-# Running SB3 developed agents on a Coral
+# Running SB3 developed agents on TFLite or Coral
 
 ## Introduction
 
