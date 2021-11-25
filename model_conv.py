@@ -1,6 +1,10 @@
 import sys
 import gym
 import torch
+import torchsummary
+import onnx
+import onnx_tf.backend
+import tensorflow as tf
 
 from stable_baselines3 import SAC
 
@@ -27,16 +31,44 @@ if __name__ == '__main__':
         env_name = sys.argv[1]
         model_prefix = sys.argv[2]
 
-    model_save_file = model_prefix + ".zip"
-    onnx_save_file = model_prefix + ".onnx"
+    model_save_file = model_prefix + '.zip'
+    onnx_save_file = model_prefix + '.onnx'
+    tf_save_file = model_prefix + '.pb'
+    tflite_save_file = model_prefix + '.tflite'
 
+    print('Creating gym to gather observation sample...')
     env = gym.make(env_name)
-    model = SAC.load(model_save_file, env, verbose=True)
     obs = env.observation_space
-    dummy_input = torch.FloatTensor(obs.sample())
+    # Awkward reshape: https://github.com/onnx/onnx-tensorflow/issues/400
+    dummy_input = torch.FloatTensor(obs.sample().reshape(1, -1))
 
+    print('Loading existing SB3 model...')
+    model = SAC.load(model_save_file, env, verbose=True)
+
+    print('Exporting to ONNX...')
     onnxable_model = OnnxablePolicy(model.policy.actor)
     model.policy.to("cpu")
     model.policy.eval()
+    print(str(onnxable_model.actor))
+    # torchsummary.summary(model.policy.actor, input_size=len(dummy_input))
 
-    torch.onnx.export(onnxable_model, dummy_input, onnx_save_file, opset_version=9, verbose=True)
+    torch.onnx.export(onnxable_model, dummy_input, onnx_save_file,
+                      input_names=['input'],
+                      output_names=['output'],
+                      opset_version=9, verbose=True)
+
+    print('Loading ONNX and checking...')
+    onnx_model = onnx.load(onnx_save_file)
+    onnx.checker.check_model(onnx_model)
+    print(onnx.helper.printable_graph(onnx_model.graph))
+
+    print('Converting ONNX to TF...')
+    tf_rep = onnx_tf.backend.prepare(onnx_model)
+    tf_rep.export_graph(model_prefix)
+
+    print('Converting TF to TFLite...')
+    converter = tf.lite.TFLiteConverter.from_saved_model(model_prefix)
+    tflite_model = converter.convert()
+    with open(tf_save_file, 'wb') as f:
+        f.write(tflite_model)
+
