@@ -37,6 +37,7 @@ if __name__ == '__main__':
     onnx_save_file = model_prefix + '.onnx'
     tf_save_file = model_prefix + '.pb'
     tflite_save_file = model_prefix + '.tflite'
+    tflite_quant_save_file = model_prefix + '_quant.tflite'
 
     print('Creating gym to gather observation sample...')
     env = gym.make(env_name)
@@ -74,5 +75,26 @@ if __name__ == '__main__':
     with open(tflite_save_file, 'wb') as f:
         f.write(tflite_model)
 
-    print('Converting TFLite to Coral...')
+    print('Converting TF to Quantised TFLite...')
+
+    def representative_data_gen():
+        global obs
+        for i in range(10000):
+            yield [obs.sample().reshape(1, -1)]
+
+    converter_quant = tf.lite.TFLiteConverter.from_saved_model(model_prefix)
+    converter_quant.optimizations = [tf.lite.Optimize.DEFAULT]
+    converter_quant.representative_dataset = representative_data_gen
+    converter_quant.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+    converter_quant.target_spec.supported_types = [tf.int8]
+    converter_quant.inference_input_type = tf.uint8
+    converter_quant.inference_output_type = tf.uint8
+    tflite_quant_model = converter_quant.convert()
+    with open(tflite_quant_save_file, 'wb') as f:
+        f.write(tflite_quant_model)
+
+    print('Converting TFLite [nonquant] to Coral...')
     system('edgetpu_compiler ' + tflite_save_file)
+
+    print('Converting TFLite [quant] to Coral...')
+    system('edgetpu_compiler ' + tflite_quant_save_file)
