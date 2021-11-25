@@ -7,8 +7,10 @@ pip
 gym
 pyglet
 onnx
+onnxruntime
 onnx-tf
 torch
+torchsummary
 stable-baselines3
 stable-baselines3[extra]
 tensorflow
