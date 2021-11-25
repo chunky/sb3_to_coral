@@ -1,4 +1,6 @@
 import sys
+from os import system
+
 import gym
 import torch
 import torchsummary
@@ -69,6 +71,8 @@ if __name__ == '__main__':
     print('Converting TF to TFLite...')
     converter = tf.lite.TFLiteConverter.from_saved_model(model_prefix)
     tflite_model = converter.convert()
-    with open(tf_save_file, 'wb') as f:
+    with open(tflite_save_file, 'wb') as f:
         f.write(tflite_model)
 
+    print('Converting TFLite to Coral...')
+    system('edgetpu_compiler ' + tflite_save_file)
