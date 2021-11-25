@@ -1,4 +1,6 @@
 *.zip
 *.onnx
+*.pb
 *.tflite
+*.log
 venv
