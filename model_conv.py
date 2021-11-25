@@ -35,7 +35,6 @@ if __name__ == '__main__':
 
     model_save_file = model_prefix + '.zip'
     onnx_save_file = model_prefix + '.onnx'
-    tf_save_file = model_prefix + '.pb'
     tflite_save_file = model_prefix + '.tflite'
     tflite_quant_save_file = model_prefix + '_quant.tflite'
 
@@ -79,7 +78,7 @@ if __name__ == '__main__':
 
     def representative_data_gen():
         global obs
-        for i in range(10000):
+        for i in range(100000):
             yield [obs.sample().reshape(1, -1)]
 
     converter_quant = tf.lite.TFLiteConverter.from_saved_model(model_prefix)
@@ -87,8 +86,9 @@ if __name__ == '__main__':
     converter_quant.representative_dataset = representative_data_gen
     converter_quant.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
     converter_quant.target_spec.supported_types = [tf.int8]
-    converter_quant.inference_input_type = tf.uint8
-    converter_quant.inference_output_type = tf.uint8
+    # Just accept that observations and actions are inherently floaty, let Coral handle that on the CPU
+    converter_quant.inference_input_type = tf.float32
+    converter_quant.inference_output_type = tf.float32
     tflite_quant_model = converter_quant.convert()
     with open(tflite_quant_save_file, 'wb') as f:
         f.write(tflite_quant_model)
