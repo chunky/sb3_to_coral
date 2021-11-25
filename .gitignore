@@ -1,6 +1,7 @@
 *.zip
 *.onnx
 *.pb
+model
 *.tflite
 *.log
 venv
