@@ -31,12 +31,20 @@ but all the pieces take command-line arguments so I can adjust to taste
 for my actual use case.
 
 ```shell
-# Train an agent
+# Train an agent with SB3
 python3 ./train.py
+
 # Convert model
 python3 ./model_conv.py
-# Run at the leaf
-python3 ./run.py
+
+# Run original SB3 model
+python3 ./run_sb3.py
+# Run the onnx model
+python3 ./run_onnx.py
+# Run the TFLite model
+python3 ./run_tflite.py
+# Run the Coral model ["edgetpu" in the name will attempt to load Coral]
+python3 ./run_tflite.py MountainCarContinuous-v0 model_quant_edgetpu
 ```
 
 Cheers,  
