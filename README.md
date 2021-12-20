@@ -47,6 +47,23 @@ python3 ./run_tflite.py
 python3 ./run_tflite.py MountainCarContinuous-v0 model_quant_edgetpu
 ```
 
+## Benchmarking
+
+I was curious to explore how the Coral actually performs. bench.sh should
+reproduce a file with a variety of NN sizes, then benchmark them all.
+
+A few things about the benchmark:
+* For completeness, there's a non-quantised "edgetpu" file built; it
+    should perform exactly the same as the CPU non-quantised one [because
+    it can't run on the Coral]
+* The benchmark simply samples the observation space for pushing through
+    TFLite, but doesn't actually execute the Gym. One can imagine perverse
+    edge cases here.
+* This manufactures NNs, but they aren't trained to completion. One can
+    imagine perverse edge cases here, too.
+* Simple fully-connected NNs such as these RL models enjoy may not be
+    a great use case for the Coral
+
 ## Extras
 
 The full chain, implemented here, to go from SB3 (Torch) to Coral is:
@@ -57,7 +74,7 @@ Torch => ONNX => Tensorflow => TFLite (normal) => TFLite (quantised) => Coral
 When this code quantises the network, it explicitly leaves the inputs and
 outputs as floats; this means there's some work that gets done on the CPU,
 but the observation and action spaces of a gym would mean that work needs
-doing, anyways. So although edgetpu_compiler says that this may be less
+doing, anyways. So although edgetpu\_compiler says that this may be less
 efficient when run on the actual device, it's actually not.
 
 The torch-to-ONNX step is a separate beast related to stable-baselines 3, that
