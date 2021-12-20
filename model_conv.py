@@ -1,3 +1,4 @@
+import os.path
 import sys
 from os import system
 
@@ -94,7 +95,7 @@ if __name__ == '__main__':
         f.write(tflite_quant_model)
 
     print('Converting TFLite [nonquant] to Coral...')
-    system('edgetpu_compiler --show_operations ' + tflite_save_file)
+    system('edgetpu_compiler --show_operations -o ' + os.path.dirname(model_prefix) + ' ' + tflite_save_file)
 
     print('Converting TFLite [quant] to Coral...')
-    system('edgetpu_compiler --show_operations ' + tflite_quant_save_file)
+    system('edgetpu_compiler --show_operations -o ' + os.path.dirname(model_prefix) + ' ' + tflite_quant_save_file)
