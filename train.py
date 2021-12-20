@@ -21,7 +21,10 @@ if __name__ == '__main__':
     env.reset()
     env.render()
 
-    model = SAC('MlpPolicy', env, verbose=1)
+    # "pi=[]" is an array of widths for the created policy/actor network, qf is for critic
+    model = SAC('MlpPolicy', env, verbose=1
+                policy_kwargs=dict(net_arch=dict(pi=[64, 64], qf=[64, 64]))
+               )
     model.learn(total_timesteps=25)
     # model.learn(total_timesteps=250_000)
     model.save(model_save_file)
