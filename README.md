@@ -47,6 +47,23 @@ python3 ./run_tflite.py
 python3 ./run_tflite.py MountainCarContinuous-v0 model_quant_edgetpu
 ```
 
+## Extras
+
+The full chain, implemented here, to go from SB3 (Torch) to Coral is:
+```
+Torch => ONNX => Tensorflow => TFLite (normal) => TFLite (quantised) => Coral
+```
+
+When this code quantises the network, it explicitly leaves the inputs and
+outputs as floats; this means there's some work that gets done on the CPU,
+but the observation and action spaces of a gym would mean that work needs
+doing, anyways. So although edgetpu_compiler says that this may be less
+efficient when run on the actual device, it's actually not.
+
+The torch-to-ONNX step is a separate beast related to stable-baselines 3, that
+warrants discussion; you can find more information on the SB3 docs page, here:
+https://stable-baselines3.readthedocs.io/en/master/guide/export.html
+
 Cheers,  
 Gary <chunky@icculus.org>
 
