@@ -63,6 +63,9 @@ A few things about the benchmark:
     imagine perverse edge cases here, too.
 * Simple fully-connected NNs such as these RL models enjoy may not be
     a great use case for the Coral
+* The bench.sh script creates some deliberately poorly-dimensioned NNs;
+    either they cannot possibly fit on the Coral, or couldn't possibly
+    be useful.
 
 ## Extras
 
