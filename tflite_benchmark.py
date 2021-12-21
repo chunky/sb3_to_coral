@@ -4,6 +4,7 @@ import gym
 import time
 import gym_rtam
 import socket
+import re
 import tflite_runtime.interpreter as tflite
 
 if __name__ == '__main__':
@@ -28,7 +29,7 @@ if __name__ == '__main__':
         interpreter = tflite.Interpreter(model_path=tflite_model)
 
     # Average over this many inferences
-    bench_inference_cnt = 10000
+    bench_inference_cnt = 100000
     # Stop benchmarking if it takes longer then this
     max_bench_time_ns = 240 * 1e9
 
@@ -55,13 +56,18 @@ if __name__ == '__main__':
             break
 
     add_header = not os.path.exists(output_csv)
+    pat = re.compile(r'w(?P<n_nodes_per_layer>[0-9]+)xd(?P<n_hidden_layers>[0-9]+)')
+    model_params = pat.search(tflite_model)
+    n_nodes_per_layer = model_params.group("n_nodes_per_layer") if model_params is not None else ''
+    n_hidden_layers = model_params.group("n_hidden_layers") if model_params is not None else ''
     with open(output_csv, 'a') as out_f:
         if add_header:
-            out_f.write("env,file,file_size,inference_cnt,ms_per_inf,inf_per_s,hostname,execute_on,is_quantised\n")
+            out_f.write("env,file,file_size,inference_cnt,ms_per_inf,inf_per_s,hostname,execute_on,"
+                        "is_quantised,n_nodes_per_layer,n_hidden_layers\n")
         model_size = os.path.getsize(tflite_model)
         ns_per_inference = (time_now - start_time_ns) / float(inference_cnt)
         ms_per_inference = ns_per_inference / 1e6
         out_f.write(f"{env_name},{tflite_model},{model_size},{inference_cnt},"
                     f"{ms_per_inference},{1000/ms_per_inference},"
-                    f"{socket.gethostname()},{device_description},{'quant' in tflite_model}\n")
-
+                    f"{socket.gethostname()},{device_description},{'quant' in tflite_model},"
+                    f"{n_nodes_per_layer},{n_hidden_layers}\n")
